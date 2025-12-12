@@ -26,7 +26,25 @@ import ImageNode from './components/ImageNode';
 import CodeNode from './components/CodeNode';
 import AudioNode from './components/AudioNode';
 import VideoNode from './components/VideoNode';
-import { getLayoutedElements } from './utils/layout';
+import { getLayoutedElements } from './utils/elkLayout';
+
+type MindMapNodeType = 'custom' | 'image' | 'code' | 'audio' | 'video';
+
+type MindMapNodeData = {
+  label: string;
+  color?: string;
+  isRoot?: boolean;
+  onLabelChange?: (id: string, label: string) => void;
+  onImageChange?: (id: string, imageUrl: string) => void;
+  onCodeChange?: (id: string, code: string, language: string) => void;
+  onAudioChange?: (id: string, audioUrl: string) => void;
+  onVideoChange?: (id: string, videoUrl: string) => void;
+  imageUrl?: string;
+  code?: string;
+  language?: string;
+  audioUrl?: string;
+  videoUrl?: string;
+};
 
 const nodeTypes = {
   custom: CustomNode,
@@ -36,7 +54,9 @@ const nodeTypes = {
   video: VideoNode,
 };
 
-const createInitialNodes = (updateNodeLabel: (id: string, label: string) => void): Node[] => [
+const createInitialNodes = (
+  updateNodeLabel: (id: string, label: string) => void
+): Node<MindMapNodeData>[] => [
   {
     id: '1',
     type: 'custom',
@@ -63,7 +83,34 @@ export default function MindMapPage() {
   const [nodeName, setNodeName] = useState('');
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
   const [fileName, setFileName] = useState('未命名思维导图');
-  const [nodeType, setNodeType] = useState<'custom' | 'image' | 'code' | 'audio' | 'video'>('custom');
+  const [nodeType, setNodeType] = useState<MindMapNodeType>('custom');
+
+  const [nodes, setNodes, onNodesChange] = useNodesState<MindMapNodeData>([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>(initialEdges);
+
+  // 更新节点标签的回调
+  const updateNodeLabel = useCallback(
+    (nodeId: string, newLabel: string) => {
+      setNodes((nds) =>
+        nds.map((node) => {
+          if (node.id === nodeId) {
+            return {
+              ...node,
+              data: { ...node.data, label: newLabel },
+            };
+          }
+          return node;
+        })
+      );
+      toast.success('节点名称已更新');
+    },
+    [setNodes]
+  );
+
+  // 初始化中心主题节点（避免把 hook 放在 early return 之后）
+  useEffect(() => {
+    setNodes((nds) => (nds.length ? nds : createInitialNodes(updateNodeLabel)));
+  }, [setNodes, updateNodeLabel]);
 
   // 检查登录状态
   useEffect(() => {
@@ -86,25 +133,6 @@ export default function MindMapPage() {
   if (!session) {
     return null;
   }
-  
-  // 更新节点标签的回调
-  const updateNodeLabel = useCallback((nodeId: string, newLabel: string) => {
-    setNodes((nds) =>
-      nds.map((node) => {
-        if (node.id === nodeId) {
-          return {
-            ...node,
-            data: { ...node.data, label: newLabel },
-          };
-        }
-        return node;
-      })
-    );
-    toast.success('节点名称已更新');
-  }, []);
-
-  const [nodes, setNodes, onNodesChange] = useNodesState(createInitialNodes(updateNodeLabel));
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
   const onConnect = useCallback(
     (params: Connection) =>
@@ -198,7 +226,7 @@ export default function MindMapPage() {
     const newNodeId = `${Date.now()}`;
     const color = colors[Math.floor(Math.random() * colors.length)];
 
-    const baseData: any = {
+    const baseData: MindMapNodeData = {
       label: nodeName,
       color: color.main,
       isRoot: false,
@@ -219,7 +247,7 @@ export default function MindMapPage() {
       baseData.onVideoChange = handleVideoChange;
     }
 
-    const newNode: Node = {
+    const newNode: Node<MindMapNodeData> = {
       id: newNodeId,
       type: nodeType,
       data: baseData,
@@ -283,7 +311,7 @@ export default function MindMapPage() {
     const color = colors[Math.floor(Math.random() * colors.length)];
     const defaultName = '新节点';
 
-    const baseData: any = {
+    const baseData: MindMapNodeData = {
       label: defaultName,
       color: color.main,
       isRoot: false,
@@ -304,7 +332,7 @@ export default function MindMapPage() {
       baseData.onVideoChange = handleVideoChange;
     }
 
-    const newNode: Node = {
+    const newNode: Node<MindMapNodeData> = {
       id: newNodeId,
       type: nodeType,
       data: baseData,

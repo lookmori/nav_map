@@ -26,7 +26,7 @@ import ImageNode from '../components/ImageNode';
 import CodeNode from '../components/CodeNode';
 import AudioNode from '../components/AudioNode';
 import VideoNode from '../components/VideoNode';
-import { getLayoutedElements } from '../utils/layout';
+import { getLayoutedElements } from '../utils/elkLayout';
 
 const nodeTypes = {
   custom: CustomNode,
