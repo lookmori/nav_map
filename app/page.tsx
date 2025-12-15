@@ -48,6 +48,15 @@ export default function Home() {
       href: "/flowchart",
       color: "from-purple-500 to-pink-500",
       features: ["丰富图形库", "自动对齐", "多种连接线", "团队协作"]
+    },
+    {
+      id: 3,
+      title: "图片格式转换",
+      description: "将图片快速转换为 PNG / JPG / WEBP 格式，支持预览与下载",
+      icon: "🖼️",
+      href: "/image-convert",
+      color: "from-emerald-500 to-teal-500",
+      features: ["PNG/JPG/WEBP", "本地转换", "即时预览", "一键下载"]
     }
   ];
 
@@ -99,7 +108,7 @@ export default function Home() {
         </div>
 
         {/* 工具卡片 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
           {tools.map((tool) => (
             <Link
               key={tool.id}
